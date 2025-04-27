@@ -1,1 +1,56 @@
+// 1. Retourner tous les noeuds
+MATCH (n) 
+RETURN n;
 
+// 2. Retourner 100 relations entre Article et autre noeud
+MATCH (a:Article)-[r]->(b) 
+RETURN a, r, b 
+LIMIT 100;
+
+// 3. Retourner paper_id, title et auteurs de 20 articles
+MATCH (a:Article)-[:ÉCRIT_PAR]->(author:Auteur)
+RETURN a.paper_id, a.title, collect(author.last) AS authors
+ORDER BY a.paper_id
+LIMIT 20;
+
+// 4. Retourner last name des auteurs + institutions
+MATCH (a:Auteur)-[:APPARTIENT_A]->(i:Institution)
+RETURN a.last, collect(i.name) AS institutions;
+
+// 5. Retourner paper_id, title, auteurs et mots-clés
+MATCH (a:Article)-[:ÉCRIT_PAR]->(author:Auteur)
+OPTIONAL MATCH (a)-[:A_POUR_MOT_CLÉ]->(keyword:MotClé)
+RETURN a.paper_id, a.title, collect(author.last) AS authors, collect(keyword.keyword) AS keywords
+ORDER BY a.paper_id
+LIMIT 20;
+
+// 6. Visualiser le schéma de la base
+CALL db.schema.visualization();
+
+// 7. Compter le nombre de noeuds
+MATCH (n)
+RETURN count(n) AS totalNodes;
+
+// 8. Compter le nombre de relations
+MATCH ()-[r]->()
+RETURN count(r) AS totalRelationships;
+
+// 9. Top 10 articles avec le plus de mots-clés
+MATCH (a:Article)-[:A_POUR_MOT_CLÉ]->(keyword:MotClé)
+WITH a, count(keyword) AS keywordCount
+ORDER BY keywordCount DESC
+RETURN a.title, a.paper_id, keywordCount
+LIMIT 10;
+
+// 10. Retourner tous les articles et auteurs
+MATCH (a:Article)-[:ÉCRIT_PAR]->(author:Auteur)
+RETURN a, author;
+
+// 11. Retourner auteurs qui n'ont pas d'institution
+MATCH (a:Auteur)
+WHERE NOT (a)-[:APPARTIENT_A]->(:Institution)
+RETURN a.first, a.last, a.institution;
+
+// 12. Retourner auteurs et leur institution
+MATCH (a:Auteur)-[:APPARTIENT_A]->(i:Institution)
+RETURN a.first, a.last, i.name;
